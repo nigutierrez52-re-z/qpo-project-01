@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ParkingForm from './ParkingForm'
 import '../styles/HomePage.css'
 
 interface HomePageProps {
@@ -9,6 +10,11 @@ interface HomePageProps {
 
 export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) {
   const [activeSection, setActiveSection] = useState('dashboard')
+  const [showAddParkingForm, setShowAddParkingForm] = useState(false)
+
+  const handleAddParking = () => {
+    setShowAddParkingForm(prev => !prev)
+  }
 
   const handleNavigation = (section: string) => {
     setActiveSection(section)
@@ -112,11 +118,38 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
 
           {activeSection === 'parking' && (
             <div className="content-section">
-              <h2>Parqueaderos Disponibles</h2>
-              <div className="empty-state">
-                <p>🗺️ Mapa de parqueaderos próximamente</p>
-                <p className="text-small">Aquí podrás ver todos los parqueaderos disponibles en tu zona</p>
+              <div className="content-header-row">
+                <h2>Parqueaderos Disponibles</h2>
+                {(user.role === 'admin' || user.role === 'host') && (
+                  <button
+                    className="btn-add-primary"
+                    onClick={handleAddParking}
+                    style={{
+                      backgroundColor: '#2ecc71',
+                      color: 'white',
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    + Agregar Parqueadero
+                  </button>
+                )}
               </div>
+
+              {showAddParkingForm ? (
+                <ParkingForm hostId={user.id} onSuccess={() => setShowAddParkingForm(false)} />
+              ) : (
+                <div className="empty-state">
+                  <p>🗺️ Mapa de parqueaderos próximamente</p>
+                  <p className="text-small">Aquí podrás ver todos los parqueaderos disponibles en tu zona</p>
+                </div>
+              )}
             </div>
           )}
 

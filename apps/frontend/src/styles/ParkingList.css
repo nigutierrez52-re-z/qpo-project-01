@@ -197,6 +197,38 @@ table td {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.reserve-button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #2ecc71;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.reserve-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.reserve-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.success-message {
+  background-color: #e6ffed;
+  color: #1f7a3f;
+  border: 1px solid #b9e6c7;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .parking-list-container {
     padding: 10px;

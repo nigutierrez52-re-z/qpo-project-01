@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import ParkingForm from './ParkingForm'
+import ParkingList from './ParkingList'
 import '../styles/HomePage.css'
 
 interface HomePageProps {
@@ -163,11 +164,7 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
 
           {activeSection === 'parking' && (
             <div className="content-section">
-              <h2>Parqueaderos Disponibles</h2>
-              <div className="empty-state">
-                <p>🗺️ Mapa de parqueaderos próximamente</p>
-                <p className="text-small">Aquí podrás ver todos los parqueaderos disponibles en tu zona</p>
-              </div>
+              <ParkingList userId={user.id} />
             </div>
           )}
 

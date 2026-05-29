@@ -15,40 +15,47 @@ interface Parking {
 
 interface ParkingListProps {
   hostId?: number;
+  userId?: number;
   showHostParkings?: boolean;
 }
 
-export default function ParkingList({ hostId, showHostParkings = false }: ParkingListProps) {
+export default function ParkingList({ hostId, userId, showHostParkings = false }: ParkingListProps) {
   const [parkings, setParkings] = useState<Parking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reservationMessage, setReservationMessage] = useState('');
+  const [reservationError, setReservationError] = useState('');
+  const [reservingId, setReservingId] = useState<number | null>(null);
   const [filter, setFilter] = useState<'all' | 'available' | 'occupied'>('available');
 
   useEffect(() => {
     fetchParkings();
-  }, [hostId, showHostParkings, filter]);
+  }, [hostId, showHostParkings, filter, userId]);
 
   const fetchParkings = async () => {
     setLoading(true);
     setError('');
-    
+    setReservationMessage('');
+    setReservationError('');
+
     try {
       let url = 'http://localhost:3000/api/v1/parkings';
-      
+
       if (showHostParkings && hostId) {
         url = `http://localhost:3000/api/v1/parkings/host/${hostId}`;
+      } else if (filter === 'available') {
+        url = 'http://localhost:3000/api/v1/parking';
       }
 
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error('Error al obtener parqueaderos');
       }
 
       let data: Parking[] = await response.json();
 
-      // Filtrar según selección
-      if (filter !== 'all') {
+      if (!showHostParkings && filter !== 'all') {
         data = data.filter(p => p.status === filter);
       }
 
@@ -82,6 +89,44 @@ export default function ParkingList({ hostId, showHostParkings = false }: Parkin
     } catch (err) {
       setError('Error al actualizar el estado');
       console.error(err);
+    }
+  };
+
+  const handleReserve = async (parkingId: number) => {
+    if (!userId) {
+      setReservationError('Debes iniciar sesión para reservar.');
+      return;
+    }
+
+    setReservationError('');
+    setReservationMessage('');
+    setReservingId(parkingId);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/v1/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          spot_id: parkingId,
+          start_time: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setReservationError(data.message || 'Error al crear la reservación');
+      } else {
+        setReservationMessage('Reserva creada correctamente.');
+        fetchParkings();
+      }
+    } catch (err) {
+      setReservationError('Error al crear la reservación');
+      console.error(err);
+    } finally {
+      setReservingId(null);
     }
   };
 
@@ -119,6 +164,8 @@ export default function ParkingList({ hostId, showHostParkings = false }: Parkin
       </div>
 
       {error && <div className="error-message">{error}</div>}
+      {reservationMessage && <div className="success-message">{reservationMessage}</div>}
+      {reservationError && <div className="error-message">{reservationError}</div>}
 
       {parkings.length === 0 ? (
         <div className="empty-state">
@@ -133,6 +180,7 @@ export default function ParkingList({ hostId, showHostParkings = false }: Parkin
                 <th>Dirección</th>
                 <th>Precio/Hora</th>
                 <th>Estado</th>
+                {!showHostParkings && <th>Acción</th>}
                 {showHostParkings && <th>Acciones</th>}
               </tr>
             </thead>
@@ -152,6 +200,21 @@ export default function ParkingList({ hostId, showHostParkings = false }: Parkin
                       {parking.status === 'available' ? '✓ Disponible' : '✗ Ocupado'}
                     </span>
                   </td>
+                  {!showHostParkings && (
+                    <td>
+                      {parking.status === 'available' ? (
+                        <button
+                          className="reserve-button"
+                          onClick={() => handleReserve(parking.id)}
+                          disabled={reservingId === parking.id}
+                        >
+                          {reservingId === parking.id ? 'Reservando...' : 'Reservar'}
+                        </button>
+                      ) : (
+                        <span className="status-badge occupied">No disponible</span>
+                      )}
+                    </td>
+                  )}
                   {showHostParkings && (
                     <td className="actions-cell">
                       <select 

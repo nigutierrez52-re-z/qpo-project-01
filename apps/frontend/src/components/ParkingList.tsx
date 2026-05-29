@@ -119,8 +119,9 @@ export default function ParkingList({ hostId, userId, showHostParkings = false }
         const data = await response.json();
         setReservationError(data.message || 'Error al crear la reservación');
       } else {
-        setReservationMessage('Reserva creada correctamente.');
+        setReservationMessage('✅ ¡Reserva creada exitosamente!');
         fetchParkings();
+        setTimeout(() => setReservationMessage(''), 4000);
       }
     } catch (err) {
       setReservationError('Error al crear la reservación');

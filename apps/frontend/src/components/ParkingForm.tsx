@@ -81,7 +81,7 @@ export default function ParkingForm({ hostId, onSuccess }: ParkingFormProps) {
       }
 
       const parking = await response.json();
-      setSuccessMessage('¡Parqueadero creado exitosamente!');
+      setSuccessMessage('✅ ¡Parqueadero creado exitosamente!');
       
       if (onSuccess) {
         onSuccess(parking);
@@ -96,7 +96,7 @@ export default function ParkingForm({ hostId, onSuccess }: ParkingFormProps) {
         longitude: formData.longitude
       });
 
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err) {
       setError('Error de conexión con el servidor');
     } finally {

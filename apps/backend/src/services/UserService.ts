@@ -32,17 +32,17 @@ export class UserService {
   }
 
   async createUser(input: CreateUserInput): Promise<User> {
-    const { name, email, password, role } = input;
+    const { name, email, password, role, phone, location } = input;
     
     // Hash la contraseña antes de guardar
     const hashedPassword = await bcrypt.hash(password, this.saltRounds);
     
     const query = `
-      INSERT INTO users (name, email, password, role)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, name, email, password, role, created_at;
+      INSERT INTO users (name, email, password, role, phone, location)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, name, email, password, role, phone, location, created_at;
     `;
-    const result = await pool.query(query, [name, email, hashedPassword, role]);
+    const result = await pool.query(query, [name, email, hashedPassword, role, phone || null, location || null]);
     return result.rows[0];
   }
 
@@ -91,6 +91,14 @@ export class UserService {
     if (input.role !== undefined) {
       updates.push(`role = $${paramIndex++}`);
       values.push(input.role);
+    }
+    if (input.phone !== undefined) {
+      updates.push(`phone = $${paramIndex++}`);
+      values.push(input.phone);
+    }
+    if (input.location !== undefined) {
+      updates.push(`location = $${paramIndex++}`);
+      values.push(input.location);
     }
 
     if (updates.length === 0) return this.getUserById(id);

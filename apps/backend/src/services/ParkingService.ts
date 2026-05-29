@@ -3,13 +3,13 @@ import { Parking, CreateParkingInput, UpdateParkingInput } from '../models/Parki
 
 export class ParkingService {
   async createParking(input: CreateParkingInput): Promise<Parking> {
-    const { spot_num, status, price, description } = input;
+    const { host_id, spot_num, status, price, description, address, latitude, longitude } = input;
     const query = `
-      INSERT INTO parkings (spot_num, status, price, description)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO parkings (host_id, spot_num, status, price, description, address, latitude, longitude)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *;
     `;
-    const result = await pool.query(query, [spot_num, status || 'available', price, description]);
+    const result = await pool.query(query, [host_id, spot_num, status || 'available', price, description, address, latitude, longitude]);
     return result.rows[0];
   }
 
@@ -52,6 +52,18 @@ export class ParkingService {
       updates.push(`description = $${paramIndex++}`);
       values.push(input.description);
     }
+    if (input.address !== undefined) {
+      updates.push(`address = $${paramIndex++}`);
+      values.push(input.address);
+    }
+    if (input.latitude !== undefined) {
+      updates.push(`latitude = $${paramIndex++}`);
+      values.push(input.latitude);
+    }
+    if (input.longitude !== undefined) {
+      updates.push(`longitude = $${paramIndex++}`);
+      values.push(input.longitude);
+    }
 
     if (updates.length === 0) return this.getParkingById(id);
 
@@ -64,6 +76,30 @@ export class ParkingService {
     `;
     const result = await pool.query(query, values);
     return result.rows[0] || null;
+  }
+
+  async getParkingsByHost(host_id: number): Promise<Parking[]> {
+    const query = 'SELECT * FROM parkings WHERE host_id = $1;';
+    const result = await pool.query(query, [host_id]);
+    return result.rows;
+  }
+
+  async searchParkingsByLocation(latitude: number, longitude: number, radiusKm: number = 5): Promise<Parking[]> {
+    const query = `
+      SELECT * FROM parkings
+      WHERE status = 'available'
+      AND ST_DWithin(
+        ST_MakePoint(longitude, latitude)::geography,
+        ST_MakePoint($1, $2)::geography,
+        $3 * 1000
+      )
+      ORDER BY ST_Distance(
+        ST_MakePoint(longitude, latitude)::geography,
+        ST_MakePoint($1, $2)::geography
+      );
+    `;
+    const result = await pool.query(query, [longitude, latitude, radiusKm]);
+    return result.rows;
   }
 
   async deleteParking(id: number): Promise<boolean> {

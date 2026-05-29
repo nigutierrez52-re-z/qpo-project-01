@@ -4,6 +4,8 @@ export interface User {
   email: string;
   password: string;
   role: 'conductor' | 'anfitrión' | 'user';
+  phone?: string;
+  location?: string;
   created_at?: Date;
 }
 

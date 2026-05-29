@@ -141,15 +141,19 @@ app.get("/api/v1/parkings", async (req: Request, res: Response) => {
 // Registrar un espacio (Anfitrión) 
 app.post("/api/v1/parkings", async (req: Request, res: Response) => {
   try {
-    const { spot_num, price, description } = req.body;
-    if (!spot_num || !price) {
-      return res.status(400).json({ message: "spot_num y price son requeridos." });
+    const { host_id, spot_num, price, description, address, latitude, longitude } = req.body;
+    if (!host_id || !spot_num || !price || !address || latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ message: "host_id, spot_num, price, address, latitude y longitude son requeridos." });
     }
     const newParking = await ParkingService.createParking({
+      host_id,
       spot_num,
       price,
       status: 'available',
-      description
+      description,
+      address,
+      latitude,
+      longitude
     });
     return res.status(201).json(newParking);
   } catch (error) {
@@ -234,6 +238,71 @@ app.patch("/api/v1/reservations/:id", async (req: Request, res: Response) => {
     return res.status(200).json(reservation);
   } catch (error) {
     console.error('Error actualizando reservación:', error);
+    return res.status(500).json({ message: "Error interno del servidor." });
+  }
+});
+
+// Obtener parqueaderos de un anfitrión específico
+app.get("/api/v1/parkings/host/:host_id", async (req: Request, res: Response) => {
+  try {
+    const { host_id } = req.params;
+    const parkings = await ParkingService.getParkingsByHost(parseInt(host_id));
+    return res.status(200).json(parkings);
+  } catch (error) {
+    console.error('Error obteniendo parqueaderos del anfitrión:', error);
+    return res.status(500).json({ message: "Error interno del servidor." });
+  }
+});
+
+// Buscar parqueaderos disponibles por ubicación
+app.get("/api/v1/parkings/search", async (req: Request, res: Response) => {
+  try {
+    const { latitude, longitude, radius } = req.query;
+    
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ message: "latitude y longitude son requeridos." });
+    }
+
+    const lat = parseFloat(latitude as string);
+    const lng = parseFloat(longitude as string);
+    const radiusKm = radius ? parseFloat(radius as string) : 5;
+
+    const parkings = await ParkingService.searchParkingsByLocation(lat, lng, radiusKm);
+    return res.status(200).json(parkings);
+  } catch (error) {
+    console.error('Error buscando parqueaderos:', error);
+    return res.status(500).json({ message: "Error interno del servidor." });
+  }
+});
+
+// Obtener detalles de un parqueadero específico
+app.get("/api/v1/parkings/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const parking = await ParkingService.getParkingById(parseInt(id));
+    if (!parking) {
+      return res.status(404).json({ message: "Parqueadero no encontrado." });
+    }
+    return res.status(200).json(parking);
+  } catch (error) {
+    console.error('Error obteniendo parqueadero:', error);
+    return res.status(500).json({ message: "Error interno del servidor." });
+  }
+});
+
+// Actualizar parqueadero
+app.patch("/api/v1/parkings/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    const parking = await ParkingService.updateParking(parseInt(id), updates);
+    if (!parking) {
+      return res.status(404).json({ message: "Parqueadero no encontrado." });
+    }
+    return res.status(200).json(parking);
+  } catch (error) {
+    console.error('Error actualizando parqueadero:', error);
     return res.status(500).json({ message: "Error interno del servidor." });
   }
 });

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ParkingForm from './ParkingForm'
 import '../styles/HomePage.css'
 
@@ -8,13 +8,58 @@ interface HomePageProps {
   onNavigate?: (section: string) => void
 }
 
+interface Parking {
+  id: number
+  host_id: number
+  spot_num: string
+  price: number
+  description: string
+  address: string
+  latitude: number
+  longitude: number
+  status: string
+  created_at?: string
+}
+
 export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) {
   const [activeSection, setActiveSection] = useState('dashboard')
   const [showAddParkingForm, setShowAddParkingForm] = useState(false)
+  const [parkings, setParkings] = useState<Parking[]>([])
+  const [loadingParkings, setLoadingParkings] = useState(false)
 
   const handleAddParking = () => {
     setShowAddParkingForm(prev => !prev)
   }
+
+  const loadUserParkings = async () => {
+    if (!user.id) return
+    setLoadingParkings(true)
+    try {
+      const response = await fetch(`http://localhost:3000/api/v1/parkings/host/${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        const normalizedParkings = Array.isArray(data)
+          ? data.map((parking: any) => ({
+              ...parking,
+              price: Number(parking.price),
+              latitude: Number(parking.latitude),
+              longitude: Number(parking.longitude)
+            }))
+          : []
+        setParkings(normalizedParkings)
+      }
+    } catch (error) {
+      console.error('Error cargando parqueaderos:', error)
+    } finally {
+      setLoadingParkings(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeSection === 'admin' && user.role === 'admin') {
+      loadUserParkings()
+    }
+  }, [activeSection, user])
 
   const handleNavigation = (section: string) => {
     setActiveSection(section)
@@ -118,38 +163,11 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
 
           {activeSection === 'parking' && (
             <div className="content-section">
-              <div className="content-header-row">
-                <h2>Parqueaderos Disponibles</h2>
-                {(user.role === 'admin' || user.role === 'host') && (
-                  <button
-                    className="btn-add-primary"
-                    onClick={handleAddParking}
-                    style={{
-                      backgroundColor: '#2ecc71',
-                      color: 'white',
-                      padding: '10px 20px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    + Agregar Parqueadero
-                  </button>
-                )}
+              <h2>Parqueaderos Disponibles</h2>
+              <div className="empty-state">
+                <p>🗺️ Mapa de parqueaderos próximamente</p>
+                <p className="text-small">Aquí podrás ver todos los parqueaderos disponibles en tu zona</p>
               </div>
-
-              {showAddParkingForm ? (
-                <ParkingForm hostId={user.id} onSuccess={() => setShowAddParkingForm(false)} />
-              ) : (
-                <div className="empty-state">
-                  <p>🗺️ Mapa de parqueaderos próximamente</p>
-                  <p className="text-small">Aquí podrás ver todos los parqueaderos disponibles en tu zona</p>
-                </div>
-              )}
             </div>
           )}
 
@@ -189,11 +207,68 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
 
           {activeSection === 'admin' && user.role === 'admin' && (
             <div className="content-section">
-              <h2>Panel de Administración</h2>
-              <div className="empty-state">
-                <p>⚙️ Panel administrativo</p>
-                <p className="text-small">Gestiona parqueaderos, usuarios y reservas desde aquí</p>
+              <div className="content-header-row">
+                <h2>Panel de Administración</h2>
+                <button
+                  className="btn-add-primary"
+                  onClick={handleAddParking}
+                  style={{
+                    backgroundColor: '#2ecc71',
+                    color: 'white',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  + Agregar Parqueadero
+                </button>
               </div>
+
+              {showAddParkingForm ? (
+                <ParkingForm hostId={user.id} onSuccess={() => {
+                  setShowAddParkingForm(false)
+                  loadUserParkings()
+                }} />
+              ) : (
+                <div>
+                  {loadingParkings ? (
+                    <div className="empty-state">
+                      <p>Cargando parqueaderos...</p>
+                    </div>
+                  ) : parkings.length > 0 ? (
+                    <div className="parkings-grid">
+                      {parkings.map(parking => (
+                        <div key={parking.id} className="parking-card">
+                          <div className="parking-card-header">
+                            <h3>{parking.spot_num}</h3>
+                            <span className={`status-badge ${parking.status}`}>
+                              {parking.status === 'available' ? '🟢 Disponible' : '🔴 No disponible'}
+                            </span>
+                          </div>
+                          <div className="parking-card-body">
+                            <p className="price"><strong>${Number(parking.price).toLocaleString('es-CO')}</strong>/hora</p>
+                            <p className="address">📍 {parking.address}</p>
+                            {parking.description && <p className="description">{parking.description}</p>}
+                            <p className="coordinates">
+                              Lat: {typeof parking.latitude === 'number' ? parking.latitude.toFixed(4) : parking.latitude}, Lng: {typeof parking.longitude === 'number' ? parking.longitude.toFixed(4) : parking.longitude}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-state">
+                      <p>⚙️ No tienes parqueaderos registrados</p>
+                      <p className="text-small">Haz clic en "Agregar Parqueadero" para crear uno</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </main>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import ParkingForm from './ParkingForm'
 import ParkingList from './ParkingList'
+import ParkingMap from './ParkingMap'
 import ReservationList from './ReservationList'
 import '../styles/HomePage.css'
 
@@ -165,6 +166,7 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
 
           {activeSection === 'parking' && (
             <div className="content-section">
+              <ParkingMap />
               <ParkingList userId={user.id} />
             </div>
           )}

@@ -14,7 +14,7 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// ✅ CORS Configurado
+// CORS Configurado
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Cambiar según tu frontend
   credentials: true,
@@ -22,7 +22,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Rate Limiting para proteger contra fuerza bruta
+//  Rate Limiting para proteger contra fuerza bruta
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 5, // máximo 5 intentos por IP

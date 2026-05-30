@@ -173,7 +173,7 @@ export default function ParkingMap({
             className="location-button"
             title="Mi ubicación"
           >
-            
+            📍
           </button>
         </div>
       </div>
@@ -239,8 +239,8 @@ export default function ParkingMap({
                   {parking.status === 'available' ? 'Disponible' : 'Ocupado'}
                 </span>
               </div>
-              <p className="address"> {parking.address}</p>
-              <p className="price"> ${parking.price} COP/hora</p>
+              <p className="address">📍 {parking.address}</p>
+              <p className="price">💰 ${parking.price} COP/hora</p>
               {parking.description && <p className="description">{parking.description}</p>}
             </div>
           ))}

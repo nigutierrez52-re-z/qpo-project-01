@@ -29,7 +29,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginF
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(' Login exitoso');
+        setSuccess('✅ Login exitoso');
         // Guardar usuario en localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
         
@@ -42,10 +42,10 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginF
           onLoginSuccess(data.user);
         }
       } else {
-        setError(' ' + (data.message || 'Error en login'));
+        setError('❌ ' + (data.message || 'Error en login'));
       }
     } catch (err) {
-      setError(' Error de conexión con el servidor');
+      setError('❌ Error de conexión con el servidor');
       console.error(err);
     } finally {
       setLoading(false);

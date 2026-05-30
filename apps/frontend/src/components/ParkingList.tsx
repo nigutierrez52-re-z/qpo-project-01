@@ -119,7 +119,7 @@ export default function ParkingList({ hostId, userId, showHostParkings = false }
         const data = await response.json();
         setReservationError(data.message || 'Error al crear la reservación');
       } else {
-        setReservationMessage(' ¡Reserva creada exitosamente!');
+        setReservationMessage('✅ ¡Reserva creada exitosamente!');
         fetchParkings();
         setTimeout(() => setReservationMessage(''), 4000);
       }
@@ -139,7 +139,7 @@ export default function ParkingList({ hostId, userId, showHostParkings = false }
     <div className="parking-list-container">
       <div className="list-header">
         <h2>
-          {showHostParkings ?  'Mis Parqueaderos' : 'Parqueaderos Disponibles'}
+          {showHostParkings ? '📍 Mis Parqueaderos' : '🅿️ Parqueaderos Disponibles'}
         </h2>
         
         <div className="filter-buttons">

@@ -14,7 +14,7 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// CORS Configurado
+// ✅ CORS Configurado
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Cambiar según tu frontend
   credentials: true,
@@ -22,7 +22,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-//  Rate Limiting para proteger contra fuerza bruta
+// ✅ Rate Limiting para proteger contra fuerza bruta
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 5, // máximo 5 intentos por IP
@@ -238,6 +238,21 @@ app.patch("/api/v1/reservations/:id", async (req: Request, res: Response) => {
     return res.status(200).json(reservation);
   } catch (error) {
     console.error('Error actualizando reservación:', error);
+    return res.status(500).json({ message: "Error interno del servidor." });
+  }
+});
+
+// Eliminar reservación
+app.delete("/api/v1/reservations/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deleted = await ReservationService.deleteReservation(parseInt(id));
+    if (!deleted) {
+      return res.status(404).json({ message: "Reservación no encontrada." });
+    }
+    return res.status(200).json({ message: "Reservación eliminada correctamente." });
+  } catch (error) {
+    console.error('Error eliminando reservación:', error);
     return res.status(500).json({ message: "Error interno del servidor." });
   }
 });

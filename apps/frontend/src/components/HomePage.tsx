@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import ParkingForm from './ParkingForm'
 import ParkingList from './ParkingList'
+import ReservationList from './ReservationList'
 import '../styles/HomePage.css'
 
 interface HomePageProps {
@@ -71,8 +72,8 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
 
   const getRoleDisplay = () => {
     const roleMap: Record<string, string> = {
-      conductor: ' Conductor',
-      admin: ' Administrador',
+      conductor: '🚗 Conductor',
+      admin: '⚙️ Administrador',
     }
     return roleMap[user.role] || user.role
   }
@@ -106,32 +107,32 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
               className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`}
               onClick={() => handleNavigation('dashboard')}
             >
-               Dashboard
+              📊 Dashboard
             </button>
             <button
               className={`nav-item ${activeSection === 'parking' ? 'active' : ''}`}
               onClick={() => handleNavigation('parking')}
             >
-               Parqueaderos
+              🅿️ Parqueaderos
             </button>
             <button
               className={`nav-item ${activeSection === 'reservations' ? 'active' : ''}`}
               onClick={() => handleNavigation('reservations')}
             >
-               Mis Reservas
+              📅 Mis Reservas
             </button>
             <button
               className={`nav-item ${activeSection === 'profile' ? 'active' : ''}`}
               onClick={() => handleNavigation('profile')}
             >
-               Perfil
+              👤 Perfil
             </button>
             {user.role === 'admin' && (
               <button
                 className={`nav-item ${activeSection === 'admin' ? 'active' : ''}`}
                 onClick={() => handleNavigation('admin')}
               >
-                 Administración
+                🔧 Administración
               </button>
             )}
           </nav>
@@ -144,17 +145,17 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
               <h2>Dashboard</h2>
               <div className="dashboard-cards">
                 <div className="dashboard-card">
-                  <h3> Estadísticas</h3>
+                  <h3>📊 Estadísticas</h3>
                   <p>Bienvenido a QPO</p>
                   <p className="card-stat">0 Reservas activas</p>
                 </div>
                 <div className="dashboard-card">
-                  <h3> Parqueaderos cercanos</h3>
+                  <h3>🅿️ Parqueaderos cercanos</h3>
                   <p>Encontramos 0 parqueaderos</p>
                   <p className="card-stat">en tu área</p>
                 </div>
                 <div className="dashboard-card">
-                  <h3> Transacciones</h3>
+                  <h3>💰 Transacciones</h3>
                   <p>Historial de pagos</p>
                   <p className="card-stat">$0.00 total</p>
                 </div>
@@ -170,11 +171,7 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
 
           {activeSection === 'reservations' && (
             <div className="content-section">
-              <h2>Mis Reservas</h2>
-              <div className="empty-state">
-                <p> No tienes reservas</p>
-                <p className="text-small">Haz tu primera reserva desde la sección de parqueaderos</p>
-              </div>
+              <ReservationList userId={user.id} />
             </div>
           )}
 
@@ -244,12 +241,12 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
                           <div className="parking-card-header">
                             <h3>{parking.spot_num}</h3>
                             <span className={`status-badge ${parking.status}`}>
-                              {parking.status === 'available' ? ' Disponible' : ' No disponible'}
+                              {parking.status === 'available' ? '🟢 Disponible' : '🔴 No disponible'}
                             </span>
                           </div>
                           <div className="parking-card-body">
                             <p className="price"><strong>${Number(parking.price).toLocaleString('es-CO')}</strong>/hora</p>
-                            <p className="address"> {parking.address}</p>
+                            <p className="address">📍 {parking.address}</p>
                             {parking.description && <p className="description">{parking.description}</p>}
                             <p className="coordinates">
                               Lat: {typeof parking.latitude === 'number' ? parking.latitude.toFixed(4) : parking.latitude}, Lng: {typeof parking.longitude === 'number' ? parking.longitude.toFixed(4) : parking.longitude}
@@ -260,7 +257,7 @@ export default function HomePage({ user, onLogout, onNavigate }: HomePageProps) 
                     </div>
                   ) : (
                     <div className="empty-state">
-                      <p> No tienes parqueaderos registrados</p>
+                      <p>⚙️ No tienes parqueaderos registrados</p>
                       <p className="text-small">Haz clic en "Agregar Parqueadero" para crear uno</p>
                     </div>
                   )}

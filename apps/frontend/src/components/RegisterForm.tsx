@@ -31,7 +31,7 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: Reg
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess(' Cuenta registrada correctamente')
+        setSuccess('✅ Cuenta registrada correctamente')
         localStorage.setItem('user', JSON.stringify(data))
         setName('')
         setEmail('')
@@ -41,10 +41,10 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: Reg
           onRegisterSuccess(data)
         }
       } else {
-        setError(' ' + (data.message || 'Error en el registro'))
+        setError('❌ ' + (data.message || 'Error en el registro'))
       }
     } catch (err) {
-      setError(' Error de conexión con el servidor')
+      setError('❌ Error de conexión con el servidor')
       console.error(err)
     } finally {
       setLoading(false)
